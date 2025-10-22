@@ -5,15 +5,19 @@ import StepNavigation from '../../components/courses/StepNavigation'
 import StepGeneralData from '../../components/courses/StepGeneralData'
 import StepRequirements from '../../components/courses/StepRequirements'
 import StepContents from '../../components/courses/StepContents'
-import { getCourseById } from '../../api/courses'
+import StepImages from '../../components/courses/StepImages'
+import { getCourseById, createCourse, updateCourse, uploadImage, deleteImage } from '../../api/courses'
 
 export default function FormCourse() {
   const { id } = useParams()
+  const isEdit = Boolean(id && id !== 'crear')
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const [courseData, setCourseData] = useState({
     course_data: {
@@ -40,7 +44,6 @@ export default function FormCourse() {
       location: '',
       min_quota: 0,
       max_quota: 0,
-      total_hours: 0,
       in_person_hours: 0,
       autonomous_hours: 0,
       modality: '',
@@ -56,113 +59,119 @@ export default function FormCourse() {
   })
 
     useEffect(() => {
-        const loadCourse = async () => {
-            try {
-                setLoading(true);
-                const loadedCourse = await getCourseById(id);
-                console.log('Curso cargado para edición:', loadedCourse);
-                
-                // Mapear los datos del curso al formato esperado
-                const mappedCourseData = {
-                    course_data: {
-                        title: loadedCourse.title || '',
-                        description: loadedCourse.description || '',
-                        category: loadedCourse.category || 'TICS',
-                        status: loadedCourse.status || 'Activo',
-                        course_image: loadedCourse.course_image || '',
-                        course_image_detail: loadedCourse.course_image_detail || '',
-                        place: loadedCourse.place || '',
-                        objectives: loadedCourse.objectives?.length > 0 ? loadedCourse.objectives : [''],
-                        organizers: loadedCourse.organizers?.length > 0 ? loadedCourse.organizers : [''],
-                        materials: loadedCourse.materials?.length > 0 ? loadedCourse.materials : [''],
-                        target_audience: loadedCourse.target_audience?.length > 0 ? loadedCourse.target_audience : ['']
-                    },
-                    requirements_data: {
-                        start_date_registration: loadedCourse.requirements?.registration?.startDate || '',
-                        end_date_registration: loadedCourse.requirements?.registration?.endDate || '',
-                        start_date_course: loadedCourse.requirements?.courseSchedule?.startDate || '',
-                        end_date_course: loadedCourse.requirements?.courseSchedule?.endDate || '',
-                        days: loadedCourse.requirements?.courseSchedule?.days?.length > 0 ? loadedCourse.requirements.courseSchedule.days : [''],
-                        start_time: loadedCourse.requirements?.courseSchedule?.startTime || '',
-                        end_time: loadedCourse.requirements?.courseSchedule?.endTime || '',
-                        location: loadedCourse.requirements?.location || '',
-                        min_quota: loadedCourse.requirements?.quota?.min || 0,
-                        max_quota: loadedCourse.requirements?.quota?.max || 0,
-                        total_hours: loadedCourse.requirements?.hours?.total || 0,
-                        in_person_hours: loadedCourse.requirements?.hours?.inPerson || 0,
-                        autonomous_hours: loadedCourse.requirements?.hours?.autonomous || 0,
-                        modality: loadedCourse.requirements?.modality || '',
-                        certification: loadedCourse.requirements?.certification || '',
-                        prerequisites: loadedCourse.requirements?.prerequisites?.length > 0 ? loadedCourse.requirements.prerequisites : [''],
-                        prices: loadedCourse.requirements?.prices?.length > 0 ? loadedCourse.requirements.prices : [{ amount: 0, category: '' }]
-                    },
-                    contents_data: loadedCourse.contents?.length > 0 ? loadedCourse.contents : [{
-                        unit: '',
-                        title: '',
-                        topics: [{ unit: '', title: '' }]
-                    }]
-                };
-                
-                setCourseData(mappedCourseData);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
+    const loadCourse = async () => {
+      try {
+        setLoading(true);
+        const loadedCourse = await getCourseById(id);
+        console.log('Curso cargado para edición:', loadedCourse);
+        
+        // Mapear los datos del curso al formato esperado
+        const mappedCourseData = {
+          course_data: {
+            title: loadedCourse.title || '',
+            description: loadedCourse.description || '',
+            category: loadedCourse.category || 'TICS',
+            // Mapear a valores de UI
+            status: loadedCourse.status
+              ? (String(loadedCourse.status).toLowerCase() === 'activo'
+                  ? 'Activo'
+                  : String(loadedCourse.status).toLowerCase() === 'inactivo'
+                    ? 'Cerrado'
+                    : loadedCourse.status)
+              : 'Activo',
+            course_image: loadedCourse.course_image || '',
+            course_image_detail: loadedCourse.course_image_detail || '',
+            place: loadedCourse.place || '',
+            objectives: loadedCourse.objectives?.length > 0 ? loadedCourse.objectives : [''],
+            organizers: loadedCourse.organizers?.length > 0 ? loadedCourse.organizers : [''],
+            materials: loadedCourse.materials?.length > 0 ? loadedCourse.materials : [''],
+            target_audience: loadedCourse.target_audience?.length > 0 ? loadedCourse.target_audience : ['']
+          },
+          requirements_data: {
+            start_date_registration: loadedCourse.requirements?.registration?.startDate || '',
+            end_date_registration: loadedCourse.requirements?.registration?.endDate || '',
+            start_date_course: loadedCourse.requirements?.courseSchedule?.startDate || '',
+            end_date_course: loadedCourse.requirements?.courseSchedule?.endDate || '',
+            days: loadedCourse.requirements?.courseSchedule?.days?.length > 0 ? loadedCourse.requirements.courseSchedule.days : [''],
+            start_time: loadedCourse.requirements?.courseSchedule?.startTime || '',
+            end_time: loadedCourse.requirements?.courseSchedule?.endTime || '',
+            location: loadedCourse.requirements?.location || '',
+            min_quota: loadedCourse.requirements?.quota?.min || 0,
+            max_quota: loadedCourse.requirements?.quota?.max || 0,
+            in_person_hours: loadedCourse.requirements?.hours?.inPerson || 0,
+            autonomous_hours: loadedCourse.requirements?.hours?.autonomous || 0,
+            modality: loadedCourse.requirements?.modality || '',
+            certification: loadedCourse.requirements?.certification || '',
+            prerequisites: loadedCourse.requirements?.prerequisites?.length > 0 ? loadedCourse.requirements.prerequisites : [''],
+            prices: loadedCourse.requirements?.prices?.length > 0 ? loadedCourse.requirements.prices : [{ amount: 0, category: '' }]
+          },
+          contents_data: loadedCourse.contents?.length > 0 ? loadedCourse.contents : [{
+            unit: '',
+            title: '',
+            topics: [{ unit: '', title: '' }]
+          }]
         };
-  
-        if (id) {
-            loadCourse();
-        } else {
-            setLoading(false);
-        }
-    }, [id]);
+        
+        setCourseData(mappedCourseData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#6C1313] mx-auto mb-4"></div>
-                    <p className="text-[#6C1313] text-lg">Cargando curso...</p>
-                </div>
-            </div>
-        );
+    if (isEdit) {
+      loadCourse();
+    } else {
+      setLoading(false);
     }
+  }, [id, isEdit]);
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center max-w-md mx-auto p-6">
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
-                        <h2 className="text-lg font-semibold mb-2">Error al cargar el curso</h2>
-                        <p className="mb-4">{error}</p>
-                        <button
-                            onClick={() => navigate('/courses')}
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
-                        >
-                            Volver a Cursos
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#6C1313] mx-auto mb-4"></div>
+          <p className="text-[#6C1313] text-lg">Cargando curso...</p>
+        </div>
+      </div>
+    );
+  }
 
-    if (!courseData) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-500 text-lg">Curso no encontrado</p>
-                    <button
-                        onClick={() => navigate('/dashboard/cursos')}
-                        className="mt-4 bg-[#6C1313] hover:bg-[#5a0f0f] text-white font-bold py-2 px-6 rounded transition-colors"
-                    >
-                        Volver
-                    </button>
-                </div>
-            </div>
-        );
-    }
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Error al cargar el curso</h2>
+            <p className="mb-4">{error}</p>
+            <button
+              onClick={() => navigate('/courses')}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+              Volver a Cursos
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!courseData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 text-lg">Curso no encontrado</p>
+          <button
+            onClick={() => navigate('/dashboard/cursos')}
+            className="mt-4 bg-[#6C1313] hover:bg-[#5a0f0f] text-white font-bold py-2 px-6 rounded transition-colors"
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // General Data handlers
   const handleCourseDataChange = (field, value) => {
@@ -340,20 +349,59 @@ export default function FormCourse() {
     }))
   }
 
+  // Reemplaza el handler de imágenes: borrar actual (si existe en edición) y subir nueva
+  const handleImageChange = async (field, file) => {
+    if (!file) return;
+    try {
+      setImageUploading(true);
+      if (isEdit && courseData.course_data[field]) {
+        await deleteImage(courseData.course_data[field]);
+      }
+      const uploaded = await uploadImage(file);
+      const newUrl = uploaded?.url || uploaded?.image_url || uploaded?.path;
+      if (!newUrl) throw new Error('No se recibió una URL válida de la imagen subida.');
+      handleCourseDataChange(field, newUrl);
+    } catch (e) {
+      setSubmitError(e.message || 'Error al procesar la imagen.');
+    } finally {
+      setImageUploading(false);
+    }
+  }
+
   const handleSubmit = async () => {
     setSaving(true)
+    setSubmitError(null)
+    
     try {
-      console.log('Guardando:', courseData)
-      // await saveCourse(courseData)
+      const uiStatus = String(courseData.course_data.status || '').toLowerCase();
+      const normalizedStatus = uiStatus === 'activo' ? 'activo' : uiStatus === 'cerrado' ? 'inactivo' : uiStatus;
+
+      const dataToSend = {
+        course_data: {
+          ...courseData.course_data,
+          status: normalizedStatus
+        },
+        requirements_data: courseData.requirements_data,
+        contents_data: courseData.contents_data
+      };
+      console.log('Datos a enviar:', dataToSend);
+
+      if (isEdit) {
+        await updateCourse(id, dataToSend);
+        console.log('Curso actualizado exitosamente');
+      } else {
+        await createCourse(dataToSend);
+        console.log('Curso creado exitosamente');
+      }
+      
       navigate('/dashboard/cursos')
     } catch (error) {
       console.error('Error al guardar:', error)
+      setSubmitError(error.message || 'Error al guardar el curso. Por favor, intente nuevamente.')
     } finally {
       setSaving(false)
     }
   }
-
-  if (!courseData) return <div>Cargando...</div>
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -367,12 +415,20 @@ export default function FormCourse() {
                 <ArrowLeftIcon className="h-5 w-5 mr-2" />
                 Volver
             </button>
-          <h1 className="text-3xl font-bold text-gray-900">{id ? 'Editar Curso' : 'Crear Nuevo Curso'}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{isEdit ? 'Editar Curso' : 'Crear Nuevo Curso'}</h1>
           <p className="text-gray-600 mt-2">Complete la información del curso en los siguientes pasos</p>
         </div>
 
         {/* Step Navigation */}
-        <StepNavigation currentStep={step} onStepChange={setStep} />
+        <StepNavigation currentStep={step} onStepChange={setStep} totalSteps={4} />
+
+        {/* Error message if submit fails */}
+        {submitError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg mb-6">
+            <p className="font-semibold">Error al guardar</p>
+            <p>{submitError}</p>
+          </div>
+        )}
 
         {/* Form Content */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -410,36 +466,46 @@ export default function FormCourse() {
               onRemoveTopic={removeTopic}
             />
           )}
+
+          {/* Step 4 now uses a component */}
+          {step === 4 && (
+            <StepImages
+              banner={courseData.course_data.course_image}
+              detail={courseData.course_data.course_image_detail}
+              onChangeImage={handleImageChange}
+            />
+          )}
         </div>
 
         {/* Navigation Buttons */}
         <div className="bg-white rounded-lg shadow-sm p-6 flex justify-between items-center">
           <button
             onClick={() => setStep(Math.max(1, step - 1))}
-            disabled={step === 1}
+            disabled={step === 1 || imageUploading}
             className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition font-medium"
           >
             ← Anterior
           </button>
 
           <div className="text-sm text-gray-600">
-            Paso {step} de 3
+            {imageUploading ? 'Subiendo imagen...' : `Paso ${step} de 4`}
           </div>
 
-          {step < 3 ? (
+          {step < 4 ? (
             <button
               onClick={() => setStep(step + 1)}
-              className="px-6 py-3 bg-[#6C1313] hover:bg-[#5a0f0f] text-white rounded-lg transition font-medium shadow-lg"
+              disabled={imageUploading}
+              className="px-6 py-3 bg-[#6C1313] hover:bg-[#5a0f0f] text-white rounded-lg transition font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Siguiente →
             </button>
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={saving}
+              disabled={saving || imageUploading}
               className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold shadow-lg"
             >
-              {saving ? '⏳ Guardando...' : '✓ Guardar Curso'}
+              {saving ? '⏳ Guardando...' : (imageUploading ? 'Espere, subiendo imagen...' : (isEdit ? '✓ Guardar Cambios' : '✓ Guardar Curso'))}
             </button>
           )}
         </div>

@@ -1,5 +1,5 @@
 export default function StepNavigation({ currentStep, onStepChange }) {
-  const steps = ['Datos Generales', 'Requisitos', 'Contenido']
+  const steps = ['Datos Generales', 'Requisitos', 'Contenido', 'Imagenes']
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

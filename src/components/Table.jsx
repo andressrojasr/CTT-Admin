@@ -1,12 +1,32 @@
 import { useState, useMemo } from "react";
 
-export default function Table({ headers = [], data = [], filters = {} }) {
+export default function Table({
+  headers = [],
+  data = [],
+  filters = {},
+  page = 1,
+  pageSize = 10,
+  total = 0,
+  totalPages = 1,
+  loading = false,
+  onPageChange,
+  onPageSizeChange,
+  onFilterChange,
+}) {
   const [search, setSearch] = useState("");
   const [columnFilters, setColumnFilters] = useState({});
 
   // Manejar filtro por columna
   const handleFilterChange = (column, value) => {
     setColumnFilters((prev) => ({ ...prev, [column]: value }));
+
+    // Notificar al padre para que haga fetch si es necesario
+    if (onFilterChange && value !== "All") {
+      onFilterChange(column, value);
+    } else if (onFilterChange && value === "All") {
+      // Si selecciona "All", notificar con null para limpiar filtro
+      onFilterChange(column, null);
+    }
   };
 
   // Datos filtrados: búsqueda global + filtros por columna
@@ -21,13 +41,32 @@ export default function Table({ headers = [], data = [], filters = {} }) {
 
       // Filtros por columna
       const matchesFilters = headers.every((header) => {
-        if (!columnFilters[header] || columnFilters[header] === "All") return true;
+        if (!columnFilters[header] || columnFilters[header] === "All")
+          return true;
         return String(row[header]) === columnFilters[header];
       });
 
       return matchesSearch && matchesFilters;
     });
   }, [search, columnFilters, data, headers]);
+
+  const handlePrev = () => {
+    if (onPageChange && page > 1) onPageChange(page - 1);
+  };
+  const handleNext = () => {
+    if (onPageChange && page < totalPages) onPageChange(page + 1);
+  };
+  const handlePageSize = (e) => {
+    const newSize = parseInt(e.target.value, 10);
+    if (onPageSizeChange) onPageSizeChange(newSize);
+  };
+  const handleJumpTo = (e) => {
+    const v = parseInt(e.target.value, 10);
+    if (!isNaN(v) && onPageChange) {
+      const target = Math.min(Math.max(1, v), totalPages);
+      onPageChange(target);
+    }
+  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -116,6 +155,58 @@ export default function Table({ headers = [], data = [], filters = {} }) {
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      {/* Paginación dentro de Table */}
+      <div className="flex items-center justify-between mt-3">
+        <div className="text-sm text-gray-700">
+          {loading
+            ? "Cargando..."
+            : `Mostrando página ${page} de ${totalPages} — ${total} registros`}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrev}
+            disabled={loading || page <= 1}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm">Ir a</label>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={page}
+              onChange={handleJumpTo}
+              className="w-16 border rounded p-1"
+            />
+            <span className="text-sm">/ {totalPages}</span>
+          </div>
+
+          <button
+            onClick={handleNext}
+            disabled={loading || page >= totalPages}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+
+          <label className="text-sm ml-2">Filas:</label>
+          <select
+            value={pageSize}
+            onChange={handlePageSize}
+            className="border rounded p-1"
+          >
+            <option value={7}>7</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
         </div>
       </div>
     </div>

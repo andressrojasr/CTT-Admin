@@ -1,15 +1,24 @@
 import api from './api';
 
-export const getCourses = async () => {
+export const getCourses = async (page = 1, pageSize = 10, status = null) => {
     try {
-        const response = await api.get('/courses');
-        const data = (response.data);
+        const params = {
+            page,
+            page_size: pageSize
+        };
+        
+        // Solo agregar status si se proporciona
+        if (status) {
+            params.status = status;
+        }
+        
+        const response = await api.get('/courses', { params });
+        const data = response.data;
 
         if (!data.courses) {
             throw new Error('No se encontraron cursos en la respuesta de la API');
         }
-
-        return data.courses;
+        return data;
     } catch (error) {
         if (error.code === 'ECONNABORTED') {
             throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
@@ -22,16 +31,26 @@ export const getCourses = async () => {
 };
 
 
-export const getCoursesByCategory = async (category) => {
+export const getCoursesByCategory = async (category, page = 1, pageSize = 10, status = null) => {
     try {
-        const response = await api.get(`/courses/category/${encodeURIComponent(category)}`);
-        const data = (response.data);
+        const params = {
+            page,
+            page_size: pageSize
+        };
+        
+        // Solo agregar status si se proporciona
+        if (status) {
+            params.status = status;
+        }
+        
+        const response = await api.get(`/courses/category/${encodeURIComponent(category)}`, { params });
+        const data = response.data;
 
         if (!data.courses) {
             throw new Error('No se encontraron cursos en la respuesta de la API');
         }
 
-        return data.courses;
+        return data;
     } catch (error) {
         if (error.code === 'ECONNABORTED') {
             throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
@@ -45,7 +64,10 @@ export const getCoursesByCategory = async (category) => {
 
 export const getCourseById = async (courseId) => {
     try {
-        const response = await api.get(`/courses/${courseId}`);
+        const token = localStorage.getItem('token');
+        const response = await api.get(`/courses/${courseId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         return response.data;
     } catch (error) {
         if (error.code === 'ECONNABORTED') {
@@ -75,6 +97,112 @@ export const getCoursesByHoursRange = async (minHours, maxHours) => {
         }
 
         return data.courses;
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
+        }
+        if (error.response) {
+            throw new Error(`Error del servidor: ${error.response.status} - ${error.response.data?.message || 'Error desconocido'}`);
+        }
+        throw new Error(`Error de red: ${error.message}`);
+    }
+};
+
+/**
+ * Crea un nuevo curso
+ * @param {Object} courseData - Datos del curso a crear
+ * @returns {Promise<Object>} Curso creado
+ * @throws {Error} Si ocurre un error en la petición
+ */
+export const createCourse = async (courseData) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await api.post('/courses', courseData, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
+        }
+        if (error.response) {
+            throw new Error(`Error del servidor: ${error.response.status} - ${error.response.data?.message || 'Error desconocido'}`);
+        }
+        throw new Error(`Error de red: ${error.message}`);
+    }
+};
+
+/**
+ * Actualiza un curso existente
+ * @param {string} courseId - ID del curso a actualizar
+ * @param {Object} courseData - Datos del curso a actualizar
+ * @returns {Promise<Object>} Curso actualizado
+ * @throws {Error} Si ocurre un error en la petición
+ */
+export const updateCourse = async (courseId, courseData) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await api.patch(`/courses/${courseId}`, courseData, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
+        }
+        if (error.response) {
+            throw new Error(`Error del servidor: ${error.response.status} - ${error.response.data?.message || 'Error desconocido'}`);
+        }
+        throw new Error(`Error de red: ${error.message}`);
+    }
+};
+
+/**
+ * Sube una imagen (multipart/form-data) y retorna la URL
+ * @param {File} file
+ * @returns {Promise<{url?: string, image_url?: string, path?: string}>}
+ */
+export const uploadImage = async (file) => {
+    try {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/images/upload', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
+        }
+        if (error.response) {
+            throw new Error(`Error del servidor: ${error.response.status} - ${error.response.data?.message || 'Error desconocido'}`);
+        }
+        throw new Error(`Error de red: ${error.message}`);
+    }
+};
+
+/**
+ * Elimina una imagen existente enviando image_url en el body
+ * @param {string} imageUrl
+ * @returns {Promise<Object>}
+ */
+export const deleteImage = async (imageUrl) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await api.post('/images/delete', { image_url: imageUrl }, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data;
     } catch (error) {
         if (error.code === 'ECONNABORTED') {
             throw new Error('Tiempo de espera agotado. Verifica tu conexión a internet.');
