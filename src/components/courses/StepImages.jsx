@@ -9,15 +9,15 @@ export default function StepImages({ banner, detail, onChangeImage }) {
       {/* Banner Image */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Imagen de banner</label>
-        <div className="flex items-start gap-6">
-          <div className="w-64 h-36 bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start gap-6">
+          <div className="w-full sm:w-64 h-auto sm:h-36 bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden">
             {banner ? (
               <img src={banner} alt="Preview banner" className="w-full h-full object-cover" />
             ) : (
               <span className="text-gray-400 text-sm">Sin imagen</span>
             )}
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <input
               type="file"
               accept="image/*"
@@ -32,15 +32,15 @@ export default function StepImages({ banner, detail, onChangeImage }) {
       {/* Detail Image */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Imagen de detalle</label>
-        <div className="flex items-start gap-6">
-          <div className="w-64 h-80 bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start gap-6">
+          <div className="w-full sm:w-64 h-auto sm:h-80 bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden">
             {detail ? (
               <img src={detail} alt="Preview detalle" className="w-full h-full object-cover" />
             ) : (
               <span className="text-gray-400 text-sm">Sin imagen</span>
             )}
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <input
               type="file"
               accept="image/*"

@@ -197,7 +197,7 @@ export const uploadImage = async (file) => {
 export const deleteImage = async (imageUrl) => {
     try {
         const token = localStorage.getItem('token');
-        const response = await api.post('/images/delete', { image_url: imageUrl }, {
+        const response = await api.delete(`/images/delete?image_url=${imageUrl}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

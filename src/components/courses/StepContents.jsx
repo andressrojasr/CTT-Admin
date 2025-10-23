@@ -41,7 +41,7 @@ export default function StepContents({
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Temas del Módulo</label>
                 {module.topics.map((topic, topicIndex) => (
-                  <div key={topicIndex} className="flex gap-2 mb-3 pl-4 border-l-4 border-[#6C1313]">
+                  <div key={topicIndex} className="flex flex-col md:flex-row gap-2 mb-3 pl-4 border-l-4 border-[#6C1313]">
                     <input
                       type="text"
                       placeholder="Título del tema"
@@ -51,7 +51,7 @@ export default function StepContents({
                     />
                     <button
                       onClick={() => onRemoveTopic(moduleIndex, topicIndex)}
-                      className="rojo"
+                      className="rojo self-end md:self-auto"
                     >
                       Eliminar
                     </button>

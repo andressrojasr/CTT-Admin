@@ -192,7 +192,7 @@ export default function StepRequirements({
       <div className="bg-gray-50 rounded-lg p-4">
         <label className="block text-sm font-semibold text-gray-700 mb-3">📋 Prerrequisitos</label>
         {requirementsData.prerequisites.map((pre, i) => (
-          <div key={i} className="flex gap-2 mb-3">
+          <div key={i} className="flex flex-col md:flex-row gap-2 mb-3">
             <input
               type="text"
               value={pre}
@@ -202,7 +202,7 @@ export default function StepRequirements({
             />
             <button
               onClick={() => onRemoveArrayItem('prerequisites', i)}
-              className="rojo"
+              className="rojo self-end md:self-auto"
             >
               Eliminar
             </button>
@@ -220,7 +220,7 @@ export default function StepRequirements({
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <label className="block text-sm font-semibold text-yellow-900 mb-3">💰 Precios</label>
         {requirementsData.prices.map((price, i) => (
-          <div key={i} className="flex gap-2 mb-3">
+          <div key={i} className="flex flex-col md:flex-row gap-2 mb-3">
             <input
               type="number"
               placeholder="Monto"
@@ -237,7 +237,7 @@ export default function StepRequirements({
             />
             <button
               onClick={() => onRemovePrice(i)}
-              className="rojo"
+              className="rojo self-end md:self-auto"
             >
               Eliminar
             </button>
