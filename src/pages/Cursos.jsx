@@ -43,7 +43,6 @@ export default function Cursos() {
               status
             )
           : await getCourses(pageRequested, pageSizeRequested, status);
-        console.log("API Response:", response);
       // Manejar ambos formatos de respuesta
       const coursesArray = Array.isArray(response)
         ? response

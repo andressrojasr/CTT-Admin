@@ -18,6 +18,14 @@ export default function FormCourse() {
   const [error, setError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [pendingImages, setPendingImages] = useState({
+    course_image: null,
+    course_image_detail: null
+  });
+  const [originalImageUrls, setOriginalImageUrls] = useState({
+    course_image: '',
+    course_image_detail: ''
+  });
 
   const [courseData, setCourseData] = useState({
     course_data: {
@@ -63,7 +71,6 @@ export default function FormCourse() {
       try {
         setLoading(true);
         const loadedCourse = await getCourseById(id);
-        console.log('Curso cargado para edición:', loadedCourse);
         
         // Mapear los datos del curso al formato esperado
         const mappedCourseData = {
@@ -113,6 +120,12 @@ export default function FormCourse() {
         };
         
         setCourseData(mappedCourseData);
+        
+        // Guardar las URLs originales
+        setOriginalImageUrls({
+          course_image: loadedCourse.course_image || '',
+          course_image_detail: loadedCourse.course_image_detail || ''
+        });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -349,23 +362,16 @@ export default function FormCourse() {
     }))
   }
 
-  // Reemplaza el handler de imágenes: borrar actual (si existe en edición) y subir nueva
+  // Reemplaza el handler de imágenes: solo almacena el archivo
   const handleImageChange = async (field, file) => {
     if (!file) return;
-    try {
-      setImageUploading(true);
-      if (isEdit && courseData.course_data[field]) {
-        await deleteImage(courseData.course_data[field]);
-      }
-      const uploaded = await uploadImage(file);
-      const newUrl = uploaded?.url || uploaded?.image_url || uploaded?.path;
-      if (!newUrl) throw new Error('No se recibió una URL válida de la imagen subida.');
-      handleCourseDataChange(field, newUrl);
-    } catch (e) {
-      setSubmitError(e.message || 'Error al procesar la imagen.');
-    } finally {
-      setImageUploading(false);
-    }
+    setPendingImages(prev => ({
+      ...prev,
+      [field]: file
+    }));
+    // Crear URL temporal para preview
+    const tempUrl = URL.createObjectURL(file);
+    handleCourseDataChange(field, tempUrl);
   }
 
   const handleSubmit = async () => {
@@ -373,33 +379,55 @@ export default function FormCourse() {
     setSubmitError(null)
     
     try {
+      // Subir imágenes pendientes antes de guardar
+      const imageUrls = { ...courseData.course_data };
+      
+      for (const field of ['course_image', 'course_image_detail']) {
+        if (pendingImages[field]) {
+          setImageUploading(true);
+          
+          // Si estamos editando y hay una imagen anterior, eliminarla
+          if (isEdit && originalImageUrls[field]) {
+            try {
+              await deleteImage(originalImageUrls[field]);
+            } catch (deleteError) {
+            }
+          }
+          
+          // Subir la nueva imagen
+          const uploaded = await uploadImage(pendingImages[field]);
+          const newUrl = uploaded?.url || uploaded?.image_url || uploaded?.path;
+          if (!newUrl) throw new Error(`No se recibió una URL válida para ${field}`);
+          imageUrls[field] = newUrl;
+        }
+      }
+      
+      setImageUploading(false);
+      
       const uiStatus = String(courseData.course_data.status || '').toLowerCase();
       const normalizedStatus = uiStatus === 'activo' ? 'activo' : uiStatus === 'cerrado' ? 'inactivo' : uiStatus;
 
       const dataToSend = {
         course_data: {
-          ...courseData.course_data,
+          ...imageUrls,
           status: normalizedStatus
         },
         requirements_data: courseData.requirements_data,
         contents_data: courseData.contents_data
       };
-      console.log('Datos a enviar:', dataToSend);
 
       if (isEdit) {
         await updateCourse(id, dataToSend);
-        console.log('Curso actualizado exitosamente');
       } else {
         await createCourse(dataToSend);
-        console.log('Curso creado exitosamente');
       }
       
       navigate('/dashboard/cursos')
     } catch (error) {
-      console.error('Error al guardar:', error)
       setSubmitError(error.message || 'Error al guardar el curso. Por favor, intente nuevamente.')
     } finally {
       setSaving(false)
+      setImageUploading(false)
     }
   }
 
@@ -421,14 +449,6 @@ export default function FormCourse() {
 
         {/* Step Navigation */}
         <StepNavigation currentStep={step} onStepChange={setStep} totalSteps={4} />
-
-        {/* Error message if submit fails */}
-        {submitError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg mb-6">
-            <p className="font-semibold">Error al guardar</p>
-            <p>{submitError}</p>
-          </div>
-        )}
 
         {/* Form Content */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -476,6 +496,13 @@ export default function FormCourse() {
             />
           )}
         </div>
+        {/* Error message if submit fails */}
+        {submitError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg mb-6">
+            <p className="font-semibold">Error al guardar</p>
+            <p>{submitError}</p>
+          </div>
+        )}
 
         {/* Navigation Buttons */}
         <div className="bg-white rounded-lg shadow-sm p-6 flex justify-between items-center">
