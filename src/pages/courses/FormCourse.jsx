@@ -46,7 +46,7 @@ export default function FormCourse() {
       end_date_registration: '',
       start_date_course: '',
       end_date_course: '',
-      days: [''],
+      days: [],
       start_time: '',
       end_time: '',
       location: '',
@@ -54,7 +54,7 @@ export default function FormCourse() {
       max_quota: 0,
       in_person_hours: 0,
       autonomous_hours: 0,
-      modality: '',
+      modality: 'Presencial',
       certification: '',
       prerequisites: [''],
       prices: [{ amount: 0, category: '' }]
@@ -407,18 +407,21 @@ export default function FormCourse() {
       const uiStatus = String(courseData.course_data.status || '').toLowerCase();
       const normalizedStatus = uiStatus === 'activo' ? 'activo' : uiStatus === 'cerrado' ? 'inactivo' : uiStatus;
 
-      const dataToSend = {
-        course_data: {
+      let dataToSend;
+      // Formato para CREAR
+      dataToSend = {
+        course: {
           ...imageUrls,
           status: normalizedStatus
         },
-        requirements_data: courseData.requirements_data,
-        contents_data: courseData.contents_data
+        requirements: courseData.requirements_data,
+        contents: courseData.contents_data
       };
-
-      if (isEdit) {
+      if (isEdit) {     
+        console.log('Updating course with data:', dataToSend);
         await updateCourse(id, dataToSend);
       } else {
+        console.log('Creating course with data:', dataToSend);
         await createCourse(dataToSend);
       }
       
