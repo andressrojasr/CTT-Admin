@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Cursos from './pages/Cursos.jsx'
 import CourseDetail from './pages/courses/CourseDetail.jsx'
 import FormCourse from './pages/courses/FormCourse.jsx'
+import Estudiantes from './pages/Estudiantes.jsx'
 
 
 // Componente para proteger rutas (solo entra si hay token)
@@ -35,6 +36,7 @@ function App() {
           <Route path="cursos" element={<Cursos />} />
           <Route path="cursos/:id" element={<CourseDetail />} />
           <Route path="cursos/:id/editar" element ={<FormCourse />} />
+          <Route path="estudiantes" element={<Estudiantes />} />
           {/* Otras rutas privadas pueden ir aquí */}
         </Route>
         {/* Redirigir raíz al login */}

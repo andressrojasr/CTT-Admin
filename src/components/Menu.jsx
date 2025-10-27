@@ -6,6 +6,7 @@ export default function Menu ({ items }) {
   
   const menuItems = [
     { name: "Cursos", path: "/dashboard/cursos" },
+    { name: "Estudiantes", path: "/dashboard/estudiantes" },
     { name: "Reportes", path: "/dashboard/reports" },
     { name: "Configuración", path: "/dashboard/settings" },
   ];
