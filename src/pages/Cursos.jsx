@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCourses, getCoursesByCategory } from "../api/courses";
+import { getCourses, getCoursesByCategory, searchCourses } from "../api/courses";
 import { EyeIcon } from "@heroicons/react/16/solid";
 import { useNavigate } from "react-router-dom";
 import Table from "../components/Table";
@@ -22,27 +22,32 @@ export default function Cursos() {
   const [totalPages, setTotalPages] = useState(1);
   const [categorySelected, setCategorySelected] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   const loadCourses = async (
     category = "Todos",
     pageRequested = 1,
     pageSizeRequested = pageSize,
-    status = statusFilter
+    status = statusFilter,
+    query = searchQuery
   ) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response =
-        category && category !== "Todos"
-          ? await getCoursesByCategory(
-              category,
-              pageRequested,
-              pageSizeRequested,
-              status
-            )
+      let response;
+      
+      // Si hay búsqueda, usar el endpoint de búsqueda
+      if (query && query.trim().length > 0) {
+        response = await searchCourses(query.trim(), pageRequested, pageSizeRequested, status);
+      } else {
+        // Si no hay búsqueda, usar la lógica existente
+        response = category && category !== "Todos"
+          ? await getCoursesByCategory(category, pageRequested, pageSizeRequested, status)
           : await getCourses(pageRequested, pageSizeRequested, status);
+      }
+      
       // Manejar ambos formatos de respuesta
       const coursesArray = Array.isArray(response)
         ? response
@@ -72,12 +77,6 @@ export default function Cursos() {
             >
               Editar
             </button>
-            <button
-              className="rojo"
-              onClick={() => alert(`Eliminar ${course.title}`)}
-            >
-              Eliminar
-            </button>
           </div>
         ),
       }));
@@ -99,6 +98,15 @@ export default function Cursos() {
     loadCourses();
   }, []);
 
+  // Efecto para manejar la búsqueda con debounce
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      loadCourses(categorySelected || "Todos", 1, pageSize, statusFilter, searchQuery);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   const handleFilterChange = (filterColumn, value) => {
     if (filterColumn === "estado") {
       // Mapear valores de UI a valores de API
@@ -111,8 +119,12 @@ export default function Cursos() {
       
       setStatusFilter(statusValue);
       // Resetear a página 1 cuando cambia el filtro
-      loadCourses(categorySelected || "Todos", 1, pageSize, statusValue);
+      loadCourses(categorySelected || "Todos", 1, pageSize, statusValue, searchQuery);
     }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
   };
 
   return (
@@ -126,6 +138,7 @@ export default function Cursos() {
           + Crear curso
         </button>
       </div>
+
       <div className="mb-4">
         <Table
           headers={headers}
@@ -137,13 +150,14 @@ export default function Cursos() {
           totalPages={totalPages}
           loading={loading}
           onPageChange={(newPage) =>
-            loadCourses(categorySelected || "Todos", newPage, pageSize, statusFilter)
+            loadCourses(categorySelected || "Todos", newPage, pageSize, statusFilter, searchQuery)
           }
           onPageSizeChange={(newSize) => {
             setPageSize(newSize);
-            loadCourses(categorySelected || "Todos", 1, newSize, statusFilter);
+            loadCourses(categorySelected || "Todos", 1, newSize, statusFilter, searchQuery);
           }}
           onFilterChange={handleFilterChange}
+          onSearchChange={handleSearchChange}
         />
       </div>
       {error && <div className="text-red-600 mt-2">{error}</div>}
