@@ -1,144 +1,53 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline"
 import StepNavigation from '../../components/courses/StepNavigation'
 import StepGeneralData from '../../components/courses/StepGeneralData'
 import StepRequirements from '../../components/courses/StepRequirements'
 import StepContents from '../../components/courses/StepContents'
 import StepImages from '../../components/courses/StepImages'
-import { getCourseById, createCourse, updateCourse, uploadImage, deleteImage } from '../../api/courses'
+import { useCourseData } from '../../hooks/useCourseData'
+import { useCourseForm } from '../../hooks/useCourseForm'
 
 export default function FormCourse() {
   const { id } = useParams()
   const isEdit = Boolean(id && id !== 'crear')
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
-  const [saving, setSaving] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null);
-  const [submitError, setSubmitError] = useState(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const [pendingImages, setPendingImages] = useState({
-    course_image: null,
-    course_image_detail: null
-  });
-  const [originalImageUrls, setOriginalImageUrls] = useState({
-    course_image: '',
-    course_image_detail: ''
-  });
 
-  const [courseData, setCourseData] = useState({
-    course_data: {
-      title: '',
-      description: '',
-      category: 'TICS',
-      status: 'Activo',
-      course_image: '',
-      course_image_detail: '',
-      place: '',
-      objectives: [''],
-      organizers: [''],
-      materials: [''],
-      target_audience: ['']
-    },
-    requirements_data: {
-      start_date_registration: '',
-      end_date_registration: '',
-      start_date_course: '',
-      end_date_course: '',
-      days: [],
-      start_time: '',
-      end_time: '',
-      location: '',
-      min_quota: 0,
-      max_quota: 0,
-      in_person_hours: 0,
-      autonomous_hours: 0,
-      modality: 'Presencial',
-      certification: '',
-      prerequisites: [''],
-      prices: [{ amount: 0, category: '' }]
-    },
-    contents_data: [{
-      unit: '',
-      title: '',
-      topics: [{ unit: '', title: '' }]
-    }]
-  })
+  const { courseData, setCourseData, loading, error, originalImageUrls } = useCourseData(id, isEdit)
+  
+  const {
+    saving,
+    submitError,
+    imageUploading,
+    validationErrors,
+    validateForm,
+    handleCourseDataChange,
+    handleCourseArrayChange,
+    addCourseArrayItem,
+    removeCourseArrayItem,
+    handleRequirementsChange,
+    handleRequirementsArrayChange,
+    addRequirementsArrayItem,
+    removeRequirementsArrayItem,
+    handlePriceChange,
+    addPrice,
+    removePrice,
+    handleContentChange,
+    handleTopicChange,
+    addModule,
+    removeModule,
+    addTopic,
+    removeTopic,
+    handleImageChange,
+    handleSubmit
+  } = useCourseForm(courseData, setCourseData, isEdit, id, originalImageUrls)
 
-    useEffect(() => {
-    const loadCourse = async () => {
-      try {
-        setLoading(true);
-        const loadedCourse = await getCourseById(id);
-        
-        // Mapear los datos del curso al formato esperado
-        const mappedCourseData = {
-          course_data: {
-            title: loadedCourse.title || '',
-            description: loadedCourse.description || '',
-            category: loadedCourse.category || 'TICS',
-            // Mapear a valores de UI
-            status: loadedCourse.status
-              ? (String(loadedCourse.status).toLowerCase() === 'activo'
-                  ? 'Activo'
-                  : String(loadedCourse.status).toLowerCase() === 'inactivo'
-                    ? 'Cerrado'
-                    : loadedCourse.status)
-              : 'Activo',
-            course_image: loadedCourse.course_image || '',
-            course_image_detail: loadedCourse.course_image_detail || '',
-            place: loadedCourse.place || '',
-            objectives: loadedCourse.objectives?.length > 0 ? loadedCourse.objectives : [''],
-            organizers: loadedCourse.organizers?.length > 0 ? loadedCourse.organizers : [''],
-            materials: loadedCourse.materials?.length > 0 ? loadedCourse.materials : [''],
-            target_audience: loadedCourse.target_audience?.length > 0 ? loadedCourse.target_audience : ['']
-          },
-          requirements_data: {
-            start_date_registration: loadedCourse.requirements?.registration?.startDate || '',
-            end_date_registration: loadedCourse.requirements?.registration?.endDate || '',
-            start_date_course: loadedCourse.requirements?.courseSchedule?.startDate || '',
-            end_date_course: loadedCourse.requirements?.courseSchedule?.endDate || '',
-            days: loadedCourse.requirements?.courseSchedule?.days?.length > 0 ? loadedCourse.requirements.courseSchedule.days : [''],
-            start_time: loadedCourse.requirements?.courseSchedule?.startTime || '',
-            end_time: loadedCourse.requirements?.courseSchedule?.endTime || '',
-            location: loadedCourse.requirements?.location || '',
-            min_quota: loadedCourse.requirements?.quota?.min || 0,
-            max_quota: loadedCourse.requirements?.quota?.max || 0,
-            in_person_hours: loadedCourse.requirements?.hours?.inPerson || 0,
-            autonomous_hours: loadedCourse.requirements?.hours?.autonomous || 0,
-            modality: loadedCourse.requirements?.modality || '',
-            certification: loadedCourse.requirements?.certification || '',
-            prerequisites: loadedCourse.requirements?.prerequisites?.length > 0 ? loadedCourse.requirements.prerequisites : [''],
-            prices: loadedCourse.requirements?.prices?.length > 0 ? loadedCourse.requirements.prices : [{ amount: 0, category: '' }]
-          },
-          contents_data: loadedCourse.contents?.length > 0 ? loadedCourse.contents : [{
-            unit: '',
-            title: '',
-            topics: [{ unit: '', title: '' }]
-          }]
-        };
-        
-        setCourseData(mappedCourseData);
-        
-        // Guardar las URLs originales
-        setOriginalImageUrls({
-          course_image: loadedCourse.course_image || '',
-          course_image_detail: loadedCourse.course_image_detail || ''
-        });
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isEdit) {
-      loadCourse();
-    } else {
-      setLoading(false);
-    }
-  }, [id, isEdit]);
+  const handleNextStep = () => {
+    validateForm()
+    setStep(step + 1)
+  }
 
   if (loading) {
     return (
@@ -184,254 +93,6 @@ export default function FormCourse() {
         </div>
       </div>
     );
-  }
-
-  // General Data handlers
-  const handleCourseDataChange = (field, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      course_data: {
-        ...prev.course_data,
-        [field]: value
-      }
-    }))
-  }
-
-  const handleCourseArrayChange = (field, index, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      course_data: {
-        ...prev.course_data,
-        [field]: prev.course_data[field].map((item, i) => i === index ? value : item)
-      }
-    }))
-  }
-
-  const addCourseArrayItem = (field) => {
-    setCourseData(prev => ({
-      ...prev,
-      course_data: {
-        ...prev.course_data,
-        [field]: [...prev.course_data[field], '']
-      }
-    }))
-  }
-
-  const removeCourseArrayItem = (field, index) => {
-    setCourseData(prev => ({
-      ...prev,
-      course_data: {
-        ...prev.course_data,
-        [field]: prev.course_data[field].filter((_, i) => i !== index)
-      }
-    }))
-  }
-
-  // Requirements handlers
-  const handleRequirementsChange = (field, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        [field]: value
-      }
-    }))
-  }
-
-  const handleRequirementsArrayChange = (field, index, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        [field]: prev.requirements_data[field].map((item, i) => i === index ? value : item)
-      }
-    }))
-  }
-
-  const addRequirementsArrayItem = (field) => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        [field]: [...prev.requirements_data[field], '']
-      }
-    }))
-  }
-
-  const removeRequirementsArrayItem = (field, index) => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        [field]: prev.requirements_data[field].filter((_, i) => i !== index)
-      }
-    }))
-  }
-
-  const handlePriceChange = (index, field, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        prices: prev.requirements_data.prices.map((price, i) => 
-          i === index ? { ...price, [field]: value } : price
-        )
-      }
-    }))
-  }
-
-  const addPrice = () => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        prices: [...prev.requirements_data.prices, { amount: 0, category: '' }]
-      }
-    }))
-  }
-
-  const removePrice = (index) => {
-    setCourseData(prev => ({
-      ...prev,
-      requirements_data: {
-        ...prev.requirements_data,
-        prices: prev.requirements_data.prices.filter((_, i) => i !== index)
-      }
-    }))
-  }
-
-  // Contents handlers
-  const handleContentChange = (moduleIndex, field, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      contents_data: prev.contents_data.map((content, i) =>
-        i === moduleIndex ? { ...content, [field]: value } : content
-      )
-    }))
-  }
-
-  const handleTopicChange = (moduleIndex, topicIndex, field, value) => {
-    setCourseData(prev => ({
-      ...prev,
-      contents_data: prev.contents_data.map((content, i) =>
-        i === moduleIndex ? {
-          ...content,
-          topics: content.topics.map((topic, j) =>
-            j === topicIndex ? { ...topic, [field]: value } : topic
-          )
-        } : content
-      )
-    }))
-  }
-
-  const addModule = () => {
-    setCourseData(prev => ({
-      ...prev,
-      contents_data: [...prev.contents_data, { unit: '', title: '', topics: [{ unit: '', title: '' }] }]
-    }))
-  }
-
-  const removeModule = (index) => {
-    setCourseData(prev => ({
-      ...prev,
-      contents_data: prev.contents_data.filter((_, i) => i !== index)
-    }))
-  }
-
-  const addTopic = (moduleIndex) => {
-    setCourseData(prev => ({
-      ...prev,
-      contents_data: prev.contents_data.map((content, i) =>
-        i === moduleIndex ? {
-          ...content,
-          topics: [...content.topics, { unit: '', title: '' }]
-        } : content
-      )
-    }))
-  }
-
-  const removeTopic = (moduleIndex, topicIndex) => {
-    setCourseData(prev => ({
-      ...prev,
-      contents_data: prev.contents_data.map((content, i) =>
-        i === moduleIndex ? {
-          ...content,
-          topics: content.topics.filter((_, j) => j !== topicIndex)
-        } : content
-      )
-    }))
-  }
-
-  // Reemplaza el handler de imágenes: solo almacena el archivo
-  const handleImageChange = async (field, file) => {
-    if (!file) return;
-    setPendingImages(prev => ({
-      ...prev,
-      [field]: file
-    }));
-    // Crear URL temporal para preview
-    const tempUrl = URL.createObjectURL(file);
-    handleCourseDataChange(field, tempUrl);
-  }
-
-  const handleSubmit = async () => {
-    setSaving(true)
-    setSubmitError(null)
-    
-    try {
-      // Subir imágenes pendientes antes de guardar
-      const imageUrls = { ...courseData.course_data };
-      
-      for (const field of ['course_image', 'course_image_detail']) {
-        if (pendingImages[field]) {
-          setImageUploading(true);
-          
-          // Si estamos editando y hay una imagen anterior, eliminarla
-          if (isEdit && originalImageUrls[field]) {
-            try {
-              await deleteImage(originalImageUrls[field]);
-            } catch (deleteError) {
-            }
-          }
-          
-          // Subir la nueva imagen
-          const uploaded = await uploadImage(pendingImages[field]);
-          const newUrl = uploaded?.url || uploaded?.image_url || uploaded?.path;
-          if (!newUrl) throw new Error(`No se recibió una URL válida para ${field}`);
-          imageUrls[field] = newUrl;
-        }
-      }
-      
-      setImageUploading(false);
-      
-      const uiStatus = String(courseData.course_data.status || '').toLowerCase();
-      const normalizedStatus = uiStatus === 'activo' ? 'activo' : uiStatus === 'cerrado' ? 'inactivo' : uiStatus;
-
-      let dataToSend;
-      // Formato para CREAR
-      dataToSend = {
-        course: {
-          ...imageUrls,
-          status: normalizedStatus
-        },
-        requirements: courseData.requirements_data,
-        contents: courseData.contents_data
-      };
-      if (isEdit) {     
-        console.log('Updating course with data:', dataToSend);
-        await updateCourse(id, dataToSend);
-      } else {
-        console.log('Creating course with data:', dataToSend);
-        await createCourse(dataToSend);
-      }
-      
-      navigate('/dashboard/cursos')
-    } catch (error) {
-      setSubmitError(error.message || 'Error al guardar el curso. Por favor, intente nuevamente.')
-    } finally {
-      setSaving(false)
-      setImageUploading(false)
-    }
   }
 
   return (
@@ -507,6 +168,21 @@ export default function FormCourse() {
           </div>
         )}
 
+        {/* Validation errors summary */}
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-4 rounded-lg mb-6">
+            <p className="font-semibold">⚠️ Hay campos incompletos o inválidos</p>
+            <ul className="list-disc list-inside mt-2 text-sm">
+              {Object.values(validationErrors).slice(0, 5).map((error, idx) => (
+                <li key={idx}>{error}</li>
+              ))}
+              {Object.keys(validationErrors).length > 5 && (
+                <li>... y {Object.keys(validationErrors).length - 5} más</li>
+              )}
+            </ul>
+          </div>
+        )}
+
         {/* Navigation Buttons */}
         <div className="bg-white rounded-lg shadow-sm p-6 flex justify-between items-center">
           <button
@@ -523,7 +199,7 @@ export default function FormCourse() {
 
           {step < 4 ? (
             <button
-              onClick={() => setStep(step + 1)}
+              onClick={handleNextStep}
               disabled={imageUploading}
               className="px-6 py-3 bg-[#6C1313] hover:bg-[#5a0f0f] text-white rounded-lg transition font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >

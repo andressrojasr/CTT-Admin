@@ -6,6 +6,9 @@ import CourseHeader from "../../components/courses/CourseHeader";
 import CourseContent from "../../components/courses/CourseContent";
 import CourseRequirements from "../../components/courses/CourseRequirements";
 import CourseSidebar from "../../components/courses/CourseSidebar";
+import CourseObjectives from "../../components/courses/CourseObjectives";
+import CourseMaterials from "../../components/courses/CourseMaterials";
+import CourseDates from "../../components/courses/CourseDates";
 
 export default function CourseDetail() {
     const { id } = useParams();
@@ -97,8 +100,11 @@ export default function CourseDetail() {
                     {/* Main Content */}
                     <div className="lg:col-span-2">
                         <CourseHeader course={course} />
+                        <CourseDates course={course} />
+                        <CourseObjectives course={course} />
                         <CourseContent course={course} />
                         <CourseRequirements course={course} />
+                        <CourseMaterials course={course} />
                     </div>
 
                     {/* Sidebar */}

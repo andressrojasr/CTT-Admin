@@ -18,14 +18,6 @@ export default function CourseSidebar({ course }) {
                     </div>
 
                     <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Horario del Curso</h4>
-                        <p className="text-sm text-gray-600">
-                            {course.requirements?.courseSchedule?.days?.join(', ')}<br />
-                            {course.requirements?.courseSchedule?.startTime} - {course.requirements?.courseSchedule?.endTime}
-                        </p>
-                    </div>
-
-                    <div>
                         <h4 className="font-medium text-gray-900 mb-2">Ubicación</h4>
                         <p className="text-sm text-gray-600">
                             {course.requirements?.location}
