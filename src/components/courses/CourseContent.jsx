@@ -1,4 +1,3 @@
-import { CheckCircleIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 
 export default function CourseContent({ course }) {
     if (!course.contents || course.contents.length === 0) return null;
