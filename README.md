@@ -11,6 +11,7 @@ Sistema de administración para el Centro de Transferencia Tecnológica (CTT). P
 - [Tecnologías Utilizadas](#tecnologías-utilizadas)
 - [Configuración](#configuración)
 - [Características Principales](#características-principales)
+- [Guía de Uso](#guía-de-uso)
 
 ## 🚀 Requisitos Previos
 
@@ -48,6 +49,88 @@ Antes de comenzar, asegúrate de tener instalado:
 ```
 ctt-admin/
 ├── public/                      # Archivos estáticos públicos
+├── src/
+│   ├── api/                     # Servicios de API
+│   │   ├── api.js              # Configuración base de Axios
+│   │   ├── auth.js             # Autenticación
+│   │   ├── courses.js          # Endpoints de cursos
+│   │   └── users.js            # Endpoints de usuarios
+│   │
+│   ├── assets/                  # Recursos estáticos (imágenes, iconos)
+│   │
+│   ├── components/              # Componentes React organizados por función
+│   │   ├── layout/             # Componentes de layout
+│   │   │   ├── Header.jsx
+│   │   │   ├── Nav.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── Menu.jsx
+│   │   │   └── index.js        # Barrel export
+│   │   │
+│   │   ├── ui/                 # Componentes UI reutilizables
+│   │   │   ├── Table.jsx
+│   │   │   ├── FilterSideBar.jsx
+│   │   │   ├── ItemHeader.jsx
+│   │   │   └── index.js        # Barrel export
+│   │   │
+│   │   ├── home/               # Componentes específicos del home
+│   │   │   ├── Carousel.jsx
+│   │   │   ├── BannerImage.jsx
+│   │   │   ├── Hero.jsx
+│   │   │   ├── Section.jsx
+│   │   │   ├── Stats.jsx
+│   │   │   ├── Banner.jsx
+│   │   │   ├── CourseSection.jsx
+│   │   │   └── index.js        # Barrel export
+│   │   │
+│   │   └── courses/            # Componentes de cursos
+│   │       ├── CardCourse.jsx
+│   │       ├── CoursesList.jsx
+│   │       ├── CourseHeader.jsx
+│   │       ├── CourseContent.jsx
+│   │       ├── CourseDates.jsx
+│   │       ├── CourseMaterials.jsx
+│   │       ├── CourseObjectives.jsx
+│   │       ├── CourseRequirements.jsx
+│   │       ├── CourseSidebar.jsx
+│   │       ├── StepContents.jsx
+│   │       ├── StepGeneralData.jsx
+│   │       ├── StepImages.jsx
+│   │       ├── StepNavigation.jsx
+│   │       ├── StepRequirements.jsx
+│   │       └── index.js        # Barrel export
+│   │
+│   ├── constants/              # Constantes y configuraciones
+│   │   └── navigation.js       # Datos de navegación y menús
+│   │
+│   ├── hooks/                  # Custom React hooks
+│   │   ├── useCourseData.js   # Hook para gestión de datos de cursos
+│   │   └── useCourseForm.js   # Hook para formularios de cursos
+│   │
+│   ├── pages/                  # Páginas de la aplicación
+│   │   ├── Home.jsx
+│   │   ├── Login.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Cursos.jsx
+│   │   ├── Estudiantes.jsx
+│   │   └── courses/            # Páginas relacionadas con cursos
+│   │       ├── CourseDetail.jsx
+│   │       └── FormCourse.jsx
+│   │
+│   ├── utils/                  # Funciones utilitarias
+│   │   ├── helpers.js         # Funciones helper generales
+│   │   └── auth.js            # Utilidades de autenticación
+│   │
+│   ├── App.css
+│   ├── App.jsx                 # Componente principal con rutas
+│   ├── index.css              # Estilos globales
+│   └── main.jsx               # Punto de entrada
+│
+├── eslint.config.js
+├── index.html
+├── package.json
+├── README.md
+└── vite.config.js
+```
 ├── src/                         # Código fuente de la aplicación
 │   ├── api/                     # Configuración y servicios de API
 │   │   ├── api.js              # Cliente HTTP base (Axios)
@@ -118,6 +201,54 @@ ctt-admin/
 └── README.md                    # Este archivo
 ```
 
+## 🎯 Mejoras de Arquitectura (Noviembre 2024)
+
+### Refactorización de Estructura
+
+El proyecto ha sido refactorizado siguiendo las mejores prácticas de React:
+
+#### **1. Nomenclatura Consistente**
+- ✅ Todos los componentes usan **PascalCase** (ej: `Header.jsx`, `Carousel.jsx`)
+- ✅ Carpetas en **minúsculas** siguiendo convenciones estándar
+- ✅ Archivos de utilidades en **camelCase** (ej: `useCourseData.js`)
+
+#### **2. Organización por Funcionalidad**
+Los componentes están organizados en carpetas temáticas:
+- **`components/layout/`** - Estructura general (Header, Nav, Footer, Menu)
+- **`components/ui/`** - Componentes reutilizables (Table, FilterSideBar, ItemHeader)
+- **`components/home/`** - Componentes específicos de la página inicial
+- **`components/courses/`** - Todo relacionado con cursos
+
+#### **3. Barrel Exports**
+Cada carpeta de componentes incluye un `index.js` para importaciones limpias:
+
+```javascript
+// Antes
+import Header from './components/layout/Header';
+import Nav from './components/layout/Nav';
+import Footer from './components/layout/Footer';
+
+// Ahora
+import { Header, Nav, Footer } from './components/layout';
+```
+
+#### **4. Constantes Centralizadas**
+Los datos estáticos ahora están en `src/constants/`:
+```javascript
+// src/constants/navigation.js
+import { mainNavigation, headerNavigation, dashboardMenuItems } from './constants/navigation';
+```
+
+#### **5. Utilidades Reutilizables**
+Funciones auxiliares organizadas en `src/utils/`:
+```javascript
+// Autenticación
+import { isAuthenticated, getToken, saveAuthData, clearAuthData } from './utils/auth';
+
+// Helpers generales
+import { formatDate, isValidEmail, truncateText, debounce } from './utils/helpers';
+```
+
 ## 🔧 Tecnologías Utilizadas
 
 ### Core
@@ -131,6 +262,7 @@ ctt-admin/
 - **Heroicons 2.2.0** - Iconos SVG
 - **React Icons 5.5.0** - Biblioteca de iconos
 - **AOS 2.3.4** - Animaciones al hacer scroll
+- **React Toastify** - Sistema de notificaciones toast
 
 ### HTTP y Estado
 - **Axios 1.12.2** - Cliente HTTP para peticiones a la API
@@ -193,7 +325,59 @@ Los componentes relacionados con cursos están organizados en pasos para facilit
 - **useCourseData** - Manejo de datos de cursos (obtención, actualización)
 - **useCourseForm** - Lógica del formulario de cursos (validación, estados)
 
-## 🚀 Inicio Rápido
+## � Convenciones de Código
+
+### Nombres de Archivos
+- **Componentes React**: `PascalCase.jsx` (Ej: `CardCourse.jsx`, `Header.jsx`)
+- **Utilidades/Hooks**: `camelCase.js` (Ej: `useFetch.js`, `helpers.js`)
+- **Constantes**: `camelCase.js` (Ej: `navigation.js`)
+
+### Estructura de Componentes
+```javascript
+// 1. Imports
+import { useState } from 'react';
+import { Component } from './components';
+
+// 2. Constantes del componente (si no están en constants/)
+const LOCAL_CONST = 'value';
+
+// 3. Componente
+export default function MyComponent() {
+  // 3.1. Hooks
+  const [state, setState] = useState();
+  
+  // 3.2. Funciones
+  const handleClick = () => {};
+  
+  // 3.3. Render
+  return <div>Content</div>;
+}
+```
+
+### Importaciones Recomendadas
+
+```javascript
+// Componentes de layout
+import { Header, Nav, Footer, Menu } from './components/layout';
+
+// Componentes UI
+import { Table, FilterSideBar, ItemHeader } from './components/ui';
+
+// Componentes de home
+import { Carousel, BannerImage, Stats, Hero } from './components/home';
+
+// Componentes de cursos
+import { CourseHeader, CourseSidebar, CourseContent } from './components/courses';
+
+// Constantes
+import { mainNavigation, dashboardMenuItems } from './constants/navigation';
+
+// Utilidades
+import { formatDate, isValidEmail } from './utils/helpers';
+import { isAuthenticated, getToken } from './utils/auth';
+```
+
+## �🚀 Inicio Rápido
 
 ```bash
 # Instalar dependencias
@@ -203,6 +387,20 @@ npm install
 npm run dev
 
 # La aplicación estará disponible en http://localhost:5173
+# (o en el siguiente puerto disponible si 5173 está en uso)
+```
+
+## 🧪 Testing y Calidad de Código
+
+```bash
+# Verificar calidad del código
+npm run lint
+
+# Construir para producción
+npm run build
+
+# Previsualizar build de producción
+npm run preview
 ```
 
 ## 📄 Licencia
@@ -220,4 +418,7 @@ Para contribuir al proyecto:
 
 ---
 
+**Última actualización:** Noviembre 2024  
+**Branch actual:** `feature/Courses`  
+**Repositorio:** [CTT-Admin](https://github.com/andressrojasr/CTT-Admin)  
 **Desarrollado por:** [Andrés Rojas](https://github.com/andressrojasr)

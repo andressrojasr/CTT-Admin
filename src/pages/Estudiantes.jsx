@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getUsers } from "../api/users";
-import Table from "../components/Table";
+import { Table } from "../components/ui";
 import AOS from "aos";
 import "aos/dist/aos.css";
 

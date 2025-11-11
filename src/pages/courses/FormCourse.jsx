@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon } from "@heroicons/react/24/outline"
-import StepNavigation from '../../components/courses/StepNavigation'
-import StepGeneralData from '../../components/courses/StepGeneralData'
-import StepRequirements from '../../components/courses/StepRequirements'
-import StepContents from '../../components/courses/StepContents'
-import StepImages from '../../components/courses/StepImages'
+import {
+  StepGeneralData,
+  StepRequirements,
+  StepContents,
+  StepImages
+} from '../../components/courses'
+import { StepNavigation } from '../../components/ui'
 import { useCourseData } from '../../hooks/useCourseData'
 import { useCourseForm } from '../../hooks/useCourseForm'
 
@@ -14,6 +16,14 @@ export default function FormCourse() {
   const isEdit = Boolean(id && id !== 'crear')
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
+
+  // Definir los pasos del formulario
+  const steps = [
+    { name: 'Datos Generales', description: 'Información básica del curso' },
+    { name: 'Requisitos', description: 'Requisitos y conocimientos previos' },
+    { name: 'Contenido', description: 'Módulos y temas del curso' },
+    { name: 'Imágenes', description: 'Imágenes y recursos visuales' }
+  ];
 
   const { courseData, setCourseData, loading, error, originalImageUrls } = useCourseData(id, isEdit)
   
@@ -112,7 +122,13 @@ export default function FormCourse() {
         </div>
 
         {/* Step Navigation */}
-        <StepNavigation currentStep={step} onStepChange={setStep} totalSteps={4} />
+        <StepNavigation 
+          currentStep={step} 
+          onStepChange={setStep} 
+          steps={steps}
+          accentColor="#6C1313"
+          clickable={true}
+        />
 
         {/* Form Content */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getCourses, getCoursesByCategory, searchCourses } from "../api/courses";
 import { EyeIcon } from "@heroicons/react/16/solid";
 import { useNavigate } from "react-router-dom";
-import Table from "../components/Table";
+import { Table } from "../components/ui";
 import AOS from "aos";
 import "aos/dist/aos.css";
 

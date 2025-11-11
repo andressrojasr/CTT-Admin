@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createCourse, updateCourse, uploadImage, deleteImage } from '../api/courses'
+import { toast } from 'react-toastify'
 
 export const useCourseForm = (courseData, setCourseData, isEdit, id, originalImageUrls) => {
   const navigate = useNavigate()
@@ -312,6 +313,10 @@ export const useCourseForm = (courseData, setCourseData, isEdit, id, originalIma
   const handleSubmit = async () => {
     if (!validateForm()) {
       setSubmitError('Por favor, complete todos los campos requeridos correctamente.')
+      toast.error('Por favor, complete todos los campos requeridos correctamente.', {
+        position: "top-right",
+        autoClose: 4000,
+      });
       return
     }
     
@@ -320,6 +325,14 @@ export const useCourseForm = (courseData, setCourseData, isEdit, id, originalIma
     
     try {
       const imageUrls = { ...courseData.course_data }
+      
+      // Notificación de inicio de carga de imágenes
+      if (pendingImages.course_image || pendingImages.course_image_detail) {
+        toast.info('Subiendo imágenes...', {
+          position: "top-right",
+          autoClose: 2000,
+        });
+      }
       
       for (const field of ['course_image', 'course_image_detail']) {
         if (pendingImages[field]) {
@@ -357,14 +370,29 @@ export const useCourseForm = (courseData, setCourseData, isEdit, id, originalIma
       if (isEdit) {     
         console.log('Updating course with data:', dataToSend)
         await updateCourse(id, dataToSend)
+        toast.success('¡Curso actualizado exitosamente!', {
+          position: "top-right",
+          autoClose: 3000,
+        });
       } else {
         console.log('Creating course with data:', dataToSend)
         await createCourse(dataToSend)
+        toast.success('¡Curso creado exitosamente!', {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
       
-      navigate('/dashboard/cursos')
+      setTimeout(() => {
+        navigate('/dashboard/cursos')
+      }, 1500);
     } catch (error) {
-      setSubmitError(error.message || 'Error al guardar el curso. Por favor, intente nuevamente.')
+      const errorMessage = error.message || 'Error al guardar el curso. Por favor, intente nuevamente.'
+      setSubmitError(errorMessage)
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     } finally {
       setSaving(false)
       setImageUploading(false)
