@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { login } from "../api/auth"
 import { useNavigate } from "react-router-dom"
+import { toast } from 'react-toastify'
+import { isAuthenticated, saveAuthData } from '../utils/auth'
 
 
 export default function Login () {
@@ -9,6 +11,13 @@ export default function Login () {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const navigate = useNavigate()
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,17 +28,31 @@ export default function Login () {
       // 👇 Llamada al servicio login()
       const response = await login(email, password);
 
-      // Si tu API devuelve un token o user info
+      // Guardar token y datos del usuario con timestamp
       if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
+        const userData = response.user || response.data || { email };
+        saveAuthData(response.access_token, userData);
       }
 
       console.log('Usuario autenticado:', response);
 
-      // Redirige al panel o dashboard
-      navigate('/dashboard');
+      // Mostrar notificación de éxito
+      toast.success('¡Inicio de sesión exitoso! Bienvenido', {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
+      // Redirige al panel o dashboard después de un breve delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     } catch (error) {
       setErrorMessage(error.message);
+      // Mostrar notificación de error
+      toast.error(error.message || 'Error al iniciar sesión. Verifica tus credenciales', {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }

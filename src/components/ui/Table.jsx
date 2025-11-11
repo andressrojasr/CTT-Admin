@@ -12,9 +12,21 @@ export default function Table({
   onPageChange,
   onPageSizeChange,
   onFilterChange,
+  onSearchChange,
 }) {
   const [search, setSearch] = useState("");
   const [columnFilters, setColumnFilters] = useState({});
+
+  // Manejar cambio de búsqueda con debounce
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+
+    // Si hay callback de búsqueda del padre, usarlo
+    if (onSearchChange) {
+      onSearchChange(value);
+    }
+  };
 
   // Manejar filtro por columna
   const handleFilterChange = (column, value) => {
@@ -29,8 +41,13 @@ export default function Table({
     }
   };
 
-  // Datos filtrados: búsqueda global + filtros por columna
+  // Datos filtrados: solo si NO hay onSearchChange (búsqueda local)
   const filteredData = useMemo(() => {
+    // Si hay búsqueda del servidor, no filtrar localmente
+    if (onSearchChange) {
+      return data;
+    }
+
     return data.filter((row) => {
       // Búsqueda global
       const matchesSearch = !search
@@ -48,7 +65,7 @@ export default function Table({
 
       return matchesSearch && matchesFilters;
     });
-  }, [search, columnFilters, data, headers]);
+  }, [search, columnFilters, data, headers, onSearchChange]);
 
   const handlePrev = () => {
     if (onPageChange && page > 1) onPageChange(page - 1);
@@ -76,7 +93,7 @@ export default function Table({
           type="text"
           placeholder="Buscar..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           className="px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6C1313] focus:border-[#6C1313]"
         />
 

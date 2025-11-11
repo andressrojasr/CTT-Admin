@@ -2,7 +2,7 @@ import CardCourse from "./CardCourse"
 import { useEffect, useState } from "react"
 import AOS from "aos"
 import 'aos/dist/aos.css'
-import { getCourses, getCoursesByCategory, getCoursesByHoursRange } from "../api/api"
+import { getCourses, getCoursesByCategory, getCoursesByHoursRange } from "../../api/courses"
 
 export default function CoursesList({filters}) {
     const [courses, setCourses] = useState([]);

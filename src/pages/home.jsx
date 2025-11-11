@@ -1,7 +1,4 @@
-import Stats from '../components/stats';
-import CourseSection from '../components/CourseSection';
-import Carrusel from '../components/carrussel';
-import BannerImage from '../components/BannerImage';
+import { Stats, CourseSection, Carousel, BannerImage } from '../components/home';
 
 const contentHero =[
   {
@@ -93,11 +90,11 @@ const slidesCarrussel = [
 export default function Home() {
   return (
     <div>
-      <Carrusel slides={contentHero} height='calc(100vh - 198px)' buttons colorText={'#FFFFFF'} />
+      <Carousel slides={contentHero} height='calc(100vh - 198px)' buttons colorText={'#FFFFFF'} />
       <CourseSection/>
       <BannerImage slides={slides} />
       <Stats/>
-      <Carrusel slides={slidesCarrussel} marginBottom={65} colorText={'#6C1313'} background={'white'}/>
+      <Carousel slides={slidesCarrussel} marginBottom={65} colorText={'#6C1313'} background={'white'}/>
     </div>
   );
 }
