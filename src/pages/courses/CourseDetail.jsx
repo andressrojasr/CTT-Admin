@@ -2,10 +2,15 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { getCourseById } from "../../api/courses";
-import CourseHeader from "../../components/courses/CourseHeader";
-import CourseContent from "../../components/courses/CourseContent";
-import CourseRequirements from "../../components/courses/CourseRequirements";
-import CourseSidebar from "../../components/courses/CourseSidebar";
+import {
+  CourseHeader,
+  CourseContent,
+  CourseRequirements,
+  CourseSidebar,
+  CourseObjectives,
+  CourseMaterials,
+  CourseDates
+} from "../../components/courses";
 
 export default function CourseDetail() {
     const { id } = useParams();
@@ -97,8 +102,11 @@ export default function CourseDetail() {
                     {/* Main Content */}
                     <div className="lg:col-span-2">
                         <CourseHeader course={course} />
+                        <CourseDates course={course} />
+                        <CourseObjectives course={course} />
                         <CourseContent course={course} />
                         <CourseRequirements course={course} />
+                        <CourseMaterials course={course} />
                     </div>
 
                     {/* Sidebar */}

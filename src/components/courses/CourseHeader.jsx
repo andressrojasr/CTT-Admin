@@ -10,17 +10,17 @@ export default function CourseHeader({ course }) {
                     className="w-full h-64 sm:h-80 object-cover"
                 />
                 <div className="absolute top-4 left-4">
-                    <span className="bg-[#6C1313] text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-[#6C1313] text-white px-3 py-1 rounded-full text-xl font-medium">
                         {course.category}
                     </span>
                 </div>
                 <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        course.status === 'Activo'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                    <span className={`px-3 py-1 rounded-full text-xl font-medium bg ${
+                        course.status === 'activo'
+                        ? 'bg-green-100 text-black'
+                        :'bg-red-100 text-red-800'
                     }`}>
-                        {course.status}
+                        {course.status === 'activo' ? 'Activo' : 'Cerrado'}
                     </span>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
-import Menu from '../components/Menu.jsx';
+import { Menu } from '../components/layout';
 
 export default function Dashboard() {
   return (

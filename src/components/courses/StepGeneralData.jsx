@@ -117,7 +117,7 @@ function ArrayField({ label, items, onItemChange, onAddItem, onRemoveItem, place
     <div className="bg-gray-50 rounded-lg p-4">
       <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
       {items.map((item, i) => (
-        <div key={i} className="flex gap-2 mb-3">
+        <div key={i} className="flex flex-col md:flex-row gap-2 mb-3">
           <input
             type="text"
             value={item}
@@ -127,8 +127,8 @@ function ArrayField({ label, items, onItemChange, onAddItem, onRemoveItem, place
           />
           <button
             onClick={() => onRemoveItem(i)}
-            className="rojo"
-          >
+            className="rojo self-end md:self-auto"
+          > 
             Eliminar
           </button>
         </div>

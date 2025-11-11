@@ -1,5 +1,5 @@
 import { DocumentMagnifyingGlassIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline'
-import ItemHeader from './itemHeader'
+import ItemHeader from '../ui/ItemHeader'
 
 const navigation = [
   { id: 0, title: 'Verifica Tu Certificado', href: 'Ingresa aquí', icon: DocumentMagnifyingGlassIcon },
@@ -7,7 +7,7 @@ const navigation = [
 ]
 
 
-export default function header() {
+export default function Header() {
   return (
     <>
         <header className="sticky hidden md:block top-0 w-full z-50 bg-white">
